@@ -1,54 +1,49 @@
 
-
-BLAT 
+BLAT -- How it works? 
 Lifeng Tian
 
-The inner workings of BLAT were learned by tracing the program in GDB and reading source code.
+(not finished yet)
 
-0. BLAT paper James Kent developed BLAT to solve the EST/gDNA
-alignment problem requiring him to align millions of EST to
-human/mouse genome in two weeks.  Before BLAT, Kent published
-a paper on Intronerator which described a cDNA/genome alignment method
-called FuzzyFind. In BLAT, he changed DNA hit searching strategies and added
-protein/genome alignment.
+The inner workings of BLAT were learned by reading source code and tracing the program in GDB.
+
+0. BLAT paper 
+
+James Kent developed BLAT to solve the EST/gDNA alignment problem requiring him to align millions of EST to
+human/mouse genome in two weeks.  Before BLAT, Kent published a paper on Intronerator which described a cDNA/genome alignment method called FuzzyFind. In BLAT, he changed DNA hit searching strategies and added
+protein/genome alignment capability.
 
 
-BLAT index the sequence database using k-mer (k from 6 to 18 for DNA), then finds short exact match tiles between query and database
-, or the hits, then extends the hits to high-scoring pairs. This is similar with BLAST. However, BLAT is designed to
-align cDNA to genome. cDNA commonly has very high similarity to the genome. However, cDNA/genome alignment may contain
-large gap (or intron). Also unlike BLAST, cDNA/genome alignment generally report an ordered list of 'exons' with accurate
-splice sites boundaries. BLAT has special code to find small internal exons and slide introns wherever possible to 
-find the correct intron boundaries. 
+BLAT index the sequence database using k-mer (k from 6 to 18 for DNA), then finds short exact match tiles between query and database, also known as the hits, then extends the hits to high-scoring pairs. This is similar with BLAST. However, BLAT is designed to align many cDNAs to genome. cDNA commonly has very high similarity to the genome. However, cDNA/genome alignment may contain large gap (ie,the intron). Also unlike BLAST, cDNA/genome alignment generally report an ordered list of 'exons' with accurate splice sites boundaries. BLAT has special code to find small internal exons and slide introns wherever possible to find the correct exon-intron boundaries, or the splice junctions. 
 
 
 BLAT was designed to align highly similar sequences, for example, ESTs, to the reference genome. 
 (reference genome means overall similarity will be high, 90%. Also can be used in homology search.
-BLAT was not designed to align 50bp to 150bp reads to genome, instead it is designed to align 300bp to 10,000bp long sequences to genome. 
-Thus, the parameters may have to be optimized for short reads mapping. 
+BLAT was not designed originally to align 50bp to 150bp reads to genome, instead it is designed to align 300bp to 10,000bp long sequences to genome. Thus, the parameters may have to be optimized for short reads mapping. 
 
-The encouraging finding from our naive BLAT splicing junctions filtering test shows that BLAT find quite a lot of junctions,
-has better performance than TopHat. And runs fast. It shows that BLAT is not fitting for short reads. I haven't find exactly why
-BLAT failed the short reads test.
+The encouraging finding from our naive BLAT splicing junctions filtering test shows that BLAT finds quite a lot of junctions, and may have better overall performance than TopHat. BLAT runs fast if using large stepSize (11). It shows that BLAT is not fitting for really short reads. 
 
-Will find out by gprof. Kent said in the BLAT paper (2002) that the speed bottleneck for BLAT is at sorting hit list and extending the alignment. let's see how we can improve it. 
-Also, to detect splice junctions, we expect BLAT to recognize the correct splice sites, which may be difficult given large
-introns and some short exons. We will explore these.
+Kent said in the BLAT paper (2002) that the speed bottleneck for BLAT is at sorting hit list and extending the alignment. gprof results with agree.
 
 
 
 1. Compiling BLAT
+
 BLAT is downloaded from UCSC CVS
 [add cvs info]
 
 After download it, set the MACHTYPE environment variable as:
 export MACHTYPE=x86_64 (or i386 i686 depends on the computer)
+export MYSQLINC=/data/share/LifengTian/src/mysql-5.1.46-linux-x86_64-glibc23/include
+export MYSQLLIBS="/data/share/LifengTian/src/mysql-5.1.46-linux-x86_64-glibc23/lib/libmysqlclient.a -lz"
+
+
 cd kent/src/blat
 make all
 
 
 
 2. GDB tracing the code
-The most efficient way to explore the code is to run it in the debugger first. Set breakpoints and step into/over and peek at the memories.
+The most efficient way to explore the code is to run it in the GDB debugger first. Set breakpoints and step into/over and peek at the memories.
 
 Here is a list of functions to set breakpoints in gdb:
 b gfLongDnaInMem
@@ -57,8 +52,11 @@ b gfClumpsToBundles
 
 Of course, add printf to dump the variables and structures such as genoFind, gfHit, gfClump, ssBundle etc is very helpful. 
 
+
+
+
 3. Source code review:
-BLAT was written in ANSI C. Tried to optimize the code by gcc -O2 or -O3. Comping with -O2,-O3 failed, it was compiled -O -g.
+BLAT was written in ANSI C. Tried to optimize the code by gcc -O2 or -O3. Comping with -O2,-O3 failed, it was successfully compiled with -O -g.
 Four major .c files:
 1. blat.c in blat folder
 2. genoFind.c in jkOwnLib folder
@@ -68,13 +66,13 @@ Four major .c files:
 
 
 Several very important data structures used in BLAT:
-dnaSeq
-genoFind
-gfSeqSource
-gfHit
-gfClump
-ssBundle
-ali
+  dnaSeq
+  genoFind
+  gfSeqSource
+  gfHit
+  gfClump
+  ssBundle
+  ali
 
 
 struct genoFind
