@@ -1,0 +1,11 @@
+wget http://research-pub.gene.com/gmap/src/gmap-gsnap-2010-03-09.tar.gz
+
+gmap_setup -d mm9 data/share/LifengTian/mm9.fa
+
+make -f Makefile.mm9 coords
+
+make -f Makefile.mm9 gmapdb
+
+make -f Makefile.mm9 install
+
+
