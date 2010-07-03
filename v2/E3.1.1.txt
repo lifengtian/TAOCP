@@ -1,0 +1,9 @@
+a) telephone directory unit digit of first number. good
+b) page number. good
+c) icosahedron 0,0,1,1. good
+d) geiger counter. good
+e) wristwatch. good
+f) ask friend. no
+g) ask enemy. no
+h) 10 horses
+
