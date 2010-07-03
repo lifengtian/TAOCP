@@ -7,3 +7,4 @@ f) ask friend. no
 g) ask enemy. no
 h) 10 horses
 
+The idea is to discovery many a way to generate random numbers. 
